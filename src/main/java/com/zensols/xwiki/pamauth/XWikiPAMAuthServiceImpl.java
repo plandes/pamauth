@@ -392,22 +392,38 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
         throws XWikiException, UnsupportedEncodingException
     {
         Principal principal = null;
-        String trimedAuthInput = authInput.trim();
+	String trimedAuthInput = authInput.trim();
 	XWikiPAMConfig configuration = initConfiguration(trimedAuthInput);
-        XWikiPAMUtils pamUtils = new XWikiPAMUtils(configuration);
-	XWikiDocument userProfile = pamUtils.getUserProfileByUid(validXWikiUserName, trimedAuthInput, context);
-        String uid = configuration.getMemoryConfiguration().get("uid");
 
-	if (local) {
-	    principal = new SimplePrincipal(userProfile.getFullName());
+        if (!configuration.isPAMEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PAM authentication failed: PAM not active");
+            }
 	} else {
-	    principal = new SimplePrincipal(userProfile.getPrefixedFullName());
+	    String uid = configuration.getMemoryConfiguration().get("uid");
+	    XWikiPAMUtils pamUtils = new XWikiPAMUtils(configuration);
+	    XWikiDocument userProfile = pamUtils.getUserProfileByUid(validXWikiUserName, trimedAuthInput, context);
+            //boolean isNewUser;
+
+	    if (LOGGER.isDebugEnabled()) {
+		LOGGER.debug("PAM authentication on uid: " + uid);
+	    }
+
+            userProfile = pamUtils.syncUser(userProfile, uid, trimedAuthInput, context);
+
+	    if (userProfile == null) {
+		throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_INIT,
+					 "PAM authentication failed: could not validate the password: wrong password for "
+					 + uid);
+	    }
+
+	    if (local) {
+		principal = new SimplePrincipal(userProfile.getFullName());
+	    } else {
+		principal = new SimplePrincipal(userProfile.getPrefixedFullName());
+	    }
 	}
 
-	throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_INIT,
-				 "PAM authentication failed: could not validate the password: wrong password for "
-				 + uid);
-
-	//return null;
+	return principal;
     }
 }
