@@ -4,6 +4,10 @@ This is a password authentication module ([PAM]) bridge from UNIX/Linux systems
 to [XWiki].  This module was inspired by, modeled and written after the [LDAP
 module].  The use case and mechanism is very similar.
 
+This is a pure Java implementation that uses [userauth] library, which wraps
+[pwauth], which is a command line tool that provides the authentication and
+commonly available on UNIX/Linux machines as a package.
+
 
 ## Motivation
 
@@ -13,7 +17,6 @@ the author because the [LDAP module] did not consistently function as described
 in this [LDAP over SSL thread].  For those that use the [LDAP NSS] [PAM]
 module, which both authenticate users on the OS itself, using this module
 allows authentication to [XWiki] to LDAP via this software.
-
 
 
 ## Obtaining
@@ -28,6 +31,11 @@ the
     <version>0.0.1</version>
 </dependency>
 ```
+
+## Installation
+
+This package requires the [pwauth] program, which is detailed in the [userauth
+package].
 
 
 ## Documentation
@@ -81,3 +89,7 @@ limitations under the License.
 [PAM]: https://en.wikipedia.org/wiki/Linux_PAM
 [LDAP over SSL thread]: https://forum.xwiki.org/t/need-help-with-ldap-ssl/304/4
 [LDAP NSS]: https://wiki.debian.org/LDAP/NSS
+
+[userauth]: https://github.com/plandes/userauth
+[pwauth]: https://github.com/phokz/pwauth
+[userauth package]: https://github.com/plandes/userauth#installation
