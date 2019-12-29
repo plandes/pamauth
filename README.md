@@ -1,4 +1,4 @@
-# PAM Authentication Module
+# XWiki PAM Authentication Module
 
 This is a password authentication module ([PAM]) bridge from UNIX/Linux systems
 to [XWiki].  This module was inspired by, modeled and written after the [LDAP
