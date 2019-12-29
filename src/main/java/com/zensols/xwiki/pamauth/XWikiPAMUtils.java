@@ -40,7 +40,7 @@ class XWikiPAMUtils {
      * @return a (new) XWiki document for the passed username
      * @throws XWikiException when a problem occurs while retrieving the user profile
      */
-    public XWikiDocument getAvailableUserProfile(String validXWikiUserName, XWikiContext context) throws XWikiException
+    private XWikiDocument getAvailableUserProfile(String validXWikiUserName, XWikiContext context) throws XWikiException
     {
 	DocumentReference userReference =
 	    new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName);
@@ -64,6 +64,20 @@ class XWikiPAMUtils {
 		return doc;
 	    }
 	}
+    }
+
+    /**
+     * @param attributes the LDAP attributes of the user
+     * @param context the XWiki context
+     * @return the name of the XWiki user profile page
+     * @throws XWikiException when a problem occurs while retrieving the user profile
+     */
+    private XWikiDocument getAvailableUserProfile(Map<String, String> attributes, XWikiContext context)
+        throws XWikiException
+    {
+        String pageName = attributes.get(PAMProfileXClass.PAM_XFIELD_USER_NAME);
+
+        return getAvailableUserProfile(pageName, context);
     }
 
     /**
@@ -256,10 +270,10 @@ class XWikiPAMUtils {
 
 		// Load XWiki user document if we don't already have them
 		if (userProfile == null) {
-		    userProfile = getAvailableUserProfile(userName, context);
+		    userProfile = getAvailableUserProfile(attributes, context);
 		}
 
-		LOGGER.debug("Loaded user profile: {}, new=", userProfile, userProfile.isNew());
+		LOGGER.debug("Loaded user profile: {}, new={}", userProfile, userProfile.isNew());
 
 		if (userProfile.isNew()) {
 		    LOGGER.debug("Creating new XWiki user based on PAM attribues located at [{}]", userName);
@@ -276,6 +290,8 @@ class XWikiPAMUtils {
 			LOGGER.error("Failed to synchronise user's informations", e);
 		    }
 		}
+	    } else {
+		userProfile = null;
 	    }
 	}
 

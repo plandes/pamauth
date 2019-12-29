@@ -28,8 +28,8 @@ import com.xpn.xwiki.user.api.XWikiRightService;
 public class PAMProfileXClass
 {
     public static final String PAM_XCLASS = "XWiki.PAMProfileClass";
-
     public static final String PAM_XFIELD_USER_NAME = "username";
+    public static final String PAM_XFIELDPN_USER_NAME = "PAM user unique identifier";
     public static final String PAM_XFIELD_UID = "uid";
     public static final String PAM_XFIELDPN_UID = "PAM UID";
 
@@ -44,7 +44,7 @@ public class PAMProfileXClass
     /**
      * Logging tool.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(XWikiPAMAuthServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PAMProfileXClass.class);
 
     private XWikiContext context;
 
@@ -94,11 +94,16 @@ public class PAMProfileXClass
     {
         // TODO: when upgrading to 8.4+ replace all that with
         // BaseClass#addTextAreaField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_UID, 80, 1, ContentType.PURE_TEXT);
-        newClass.addTextAreaField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_UID, 80, 1);
-        TextAreaClass textAreaClass = (TextAreaClass) newClass.get(PAM_XFIELD_USER_NAME);
-        textAreaClass.setContentType("PureText");
+        // newClass.addTextAreaField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_USER_NAME, 80, 1);
+        // TextAreaClass textAreaClass = (TextAreaClass) newClass.get(PAM_XFIELD_USER_NAME);
+        // textAreaClass.setContentType("PureText");
+        // newClass.addTextField(PAM_XFIELD_UID, PAM_XFIELDPN_UID, 80);
 
-        newClass.addTextField(PAM_XFIELD_UID, PAM_XFIELDPN_UID, 80);
+
+        newClass.addTextAreaField(PAM_XFIELD_UID, PAM_XFIELDPN_UID, 80, 1);
+        TextAreaClass textAreaClass = (TextAreaClass) newClass.get(PAM_XFIELD_UID);
+        textAreaClass.setContentType("PureText");
+        newClass.addTextField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_USER_NAME, 80);
     }
 
     /**
@@ -153,30 +158,30 @@ public class PAMProfileXClass
         return uid.length() == 0 ? null : uid;
     }
 
-    /**
-     * Update or create PAM profile of an existing user profile with provided PAM user informations.
-     * 
-     * @param xwikiUserName the name of the XWiki user to update PAM profile.
-     * @param userName the userName to store in the PAM profile.
-     * @param uid the uid to store in the PAM profile.
-     * @throws XWikiException error when storing information in user profile.
-     */
-    public void updatePAMObject(String xwikiUserName, String userName, String uid) throws XWikiException
-    {
-        XWikiDocument userDocument = this.context.getWiki()
-            .getDocument(new LocalDocumentReference(XWIKI_USER_SPACE, xwikiUserName), this.context);
+    // /**
+    //  * Update or create PAM profile of an existing user profile with provided PAM user informations.
+    //  * 
+    //  * @param xwikiUserName the name of the XWiki user to update PAM profile.
+    //  * @param userName the userName to store in the PAM profile.
+    //  * @param uid the uid to store in the PAM profile.
+    //  * @throws XWikiException error when storing information in user profile.
+    //  */
+    // public void updatePAMObject(String xwikiUserName, String userName, String uid) throws XWikiException
+    // {
+    //     XWikiDocument userDocument = this.context.getWiki()
+    //         .getDocument(new LocalDocumentReference(XWIKI_USER_SPACE, xwikiUserName), this.context);
 
-        boolean needsUpdate = updatePAMObject(userDocument, userName, uid);
+    //     boolean needsUpdate = updatePAMObject(userDocument, userName, uid);
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("storing PAM object: xwikiUserName={}, userName={}, uid={}, needsUpdate={}",
-			 xwikiUserName, userName, uid, needsUpdate);
-	}
+    // 	if (LOGGER.isDebugEnabled()) {
+    // 	    LOGGER.debug("storing PAM object: xwikiUserName={}, userName={}, uid={}, needsUpdate={}",
+    // 			 xwikiUserName, userName, uid, needsUpdate);
+    // 	}
 
-        if (needsUpdate) {
-            this.context.getWiki().saveDocument(userDocument, "Update PAM user profile", this.context);
-        }
-    }
+    //     if (needsUpdate) {
+    //         this.context.getWiki().saveDocument(userDocument, "Update PAM user profile", this.context);
+    //     }
+    // }
 
     /**
      * Update PAM profile object with provided PAM user informations.
@@ -189,9 +194,7 @@ public class PAMProfileXClass
     public boolean updatePAMObject(XWikiDocument userDocument, String userName, String uid)
     {
         BaseObject pamObject = userDocument.getXObject(this.pamClass.getDocumentReference(), true, this.context);
-
         Map<String, String> map = new HashMap<String, String>();
-
         boolean needsUpdate = false;
 
         String objUserName = getUserName(pamObject);
@@ -205,6 +208,11 @@ public class PAMProfileXClass
             map.put(PAM_XFIELD_UID, uid);
             needsUpdate = true;
         }
+
+	if (LOGGER.isDebugEnabled()) {
+	    LOGGER.debug("storing PAM object: objUserName={}, objUid={}, userName={}, uid={}, needsUpdate={}",
+			 objUserName, objUid, userName, uid, needsUpdate);
+	}
 
         if (needsUpdate) {
             this.pamClass.fromMap(map, pamObject);
@@ -239,6 +247,11 @@ public class PAMProfileXClass
 
             documentList = Collections.emptyList();
         }
+
+	if (LOGGER.isDebugEnabled()) {
+	    LOGGER.debug("counted {} docs searching for id={}, {}={}",
+			 documentList.size(), PAM_XCLASS, PAM_XFIELD_USER_NAME, userName.toLowerCase());
+	}	
 
         if (documentList.size() > 1) {
             LOGGER.error("There is more than one user profile for PAM userName [" + userName + "]");
