@@ -92,14 +92,6 @@ public class PAMProfileXClass
 
     private void createClass(BaseClass newClass)
     {
-        // TODO: when upgrading to 8.4+ replace all that with
-        // BaseClass#addTextAreaField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_UID, 80, 1, ContentType.PURE_TEXT);
-        // newClass.addTextAreaField(PAM_XFIELD_USER_NAME, PAM_XFIELDPN_USER_NAME, 80, 1);
-        // TextAreaClass textAreaClass = (TextAreaClass) newClass.get(PAM_XFIELD_USER_NAME);
-        // textAreaClass.setContentType("PureText");
-        // newClass.addTextField(PAM_XFIELD_UID, PAM_XFIELDPN_UID, 80);
-
-
         newClass.addTextAreaField(PAM_XFIELD_UID, PAM_XFIELDPN_UID, 80, 1);
         TextAreaClass textAreaClass = (TextAreaClass) newClass.get(PAM_XFIELD_UID);
         textAreaClass.setContentType("PureText");
@@ -157,31 +149,6 @@ public class PAMProfileXClass
 
         return uid.length() == 0 ? null : uid;
     }
-
-    // /**
-    //  * Update or create PAM profile of an existing user profile with provided PAM user informations.
-    //  * 
-    //  * @param xwikiUserName the name of the XWiki user to update PAM profile.
-    //  * @param userName the userName to store in the PAM profile.
-    //  * @param uid the uid to store in the PAM profile.
-    //  * @throws XWikiException error when storing information in user profile.
-    //  */
-    // public void updatePAMObject(String xwikiUserName, String userName, String uid) throws XWikiException
-    // {
-    //     XWikiDocument userDocument = this.context.getWiki()
-    //         .getDocument(new LocalDocumentReference(XWIKI_USER_SPACE, xwikiUserName), this.context);
-
-    //     boolean needsUpdate = updatePAMObject(userDocument, userName, uid);
-
-    // 	if (LOGGER.isDebugEnabled()) {
-    // 	    LOGGER.debug("storing PAM object: xwikiUserName={}, userName={}, uid={}, needsUpdate={}",
-    // 			 xwikiUserName, userName, uid, needsUpdate);
-    // 	}
-
-    //     if (needsUpdate) {
-    //         this.context.getWiki().saveDocument(userDocument, "Update PAM user profile", this.context);
-    //     }
-    // }
 
     /**
      * Update PAM profile object with provided PAM user informations.
