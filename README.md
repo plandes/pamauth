@@ -1,6 +1,19 @@
-# PAM Auth
+# PAM Authentication Module
 
-Password Authentication Module (PAM) bridge
+This is a password authentication module ([PAM]) bridge from UNIX/Linux systems
+to [XWiki].  This module was inspired by, modeled and written after the [LDAP
+module].  The use case and mechanism is very similar.
+
+
+## Motivation
+
+This module addresses the need for systems that have a particular [PAM]
+configuration and want to use it to authenticate users.  This was written by
+the author because the [LDAP module] did not consistently function as described
+in this [LDAP over SSL thread].  For those that use the [LDAP NSS] [PAM]
+module, which both authenticate users on the OS itself, using this module
+allows authentication to [XWiki] to LDAP via this software.
+
 
 
 ## Obtaining
@@ -59,3 +72,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+<!-- links -->
+
+[XWiki]: https://www.xwiki.org/xwiki/bin/view/Main/WebHome
+[LDAP module]: https://github.com/xwiki-contrib/ldap
+[PAM]: https://en.wikipedia.org/wiki/Linux_PAM
+[LDAP over SSL thread]: https://forum.xwiki.org/t/need-help-with-ldap-ssl/304/4
+[LDAP NSS]: https://wiki.debian.org/LDAP/NSS
