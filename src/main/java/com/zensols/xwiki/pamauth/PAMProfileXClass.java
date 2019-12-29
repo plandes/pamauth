@@ -103,24 +103,24 @@ public class PAMProfileXClass
 
     /**
      * @param userDocument the user profile page.
-     * @return the dn store in the user profile. Null if it can't find any or if it's empty.
+     * @return the userName store in the user profile. Null if it can't find any or if it's empty.
      */
-    public String getDn(XWikiDocument userDocument)
+    public String getUserName(XWikiDocument userDocument)
     {
         BaseObject pamObject = userDocument.getXObject(this.pamClass.getDocumentReference());
 
-        return pamObject == null ? null : getDn(pamObject);
+        return pamObject == null ? null : getUserName(pamObject);
     }
 
     /**
      * @param pamObject the pam profile object.
-     * @return the dn store in the user profile. Null if it can't find any or if it's empty.
+     * @return the userName store in the user profile. Null if it can't find any or if it's empty.
      */
-    public String getDn(BaseObject pamObject)
+    public String getUserName(BaseObject pamObject)
     {
-        String dn = pamObject.getStringValue(PAM_XFIELD_USER_NAME);
+        String userName = pamObject.getStringValue(PAM_XFIELD_USER_NAME);
 
-        return dn.length() == 0 ? null : dn;
+        return userName.length() == 0 ? null : userName;
     }
 
     /**
@@ -157,16 +157,21 @@ public class PAMProfileXClass
      * Update or create PAM profile of an existing user profile with provided PAM user informations.
      * 
      * @param xwikiUserName the name of the XWiki user to update PAM profile.
-     * @param dn the dn to store in the PAM profile.
+     * @param userName the userName to store in the PAM profile.
      * @param uid the uid to store in the PAM profile.
      * @throws XWikiException error when storing information in user profile.
      */
-    public void updatePAMObject(String xwikiUserName, String dn, String uid) throws XWikiException
+    public void updatePAMObject(String xwikiUserName, String userName, String uid) throws XWikiException
     {
         XWikiDocument userDocument = this.context.getWiki()
             .getDocument(new LocalDocumentReference(XWIKI_USER_SPACE, xwikiUserName), this.context);
 
-        boolean needsUpdate = updatePAMObject(userDocument, dn, uid);
+        boolean needsUpdate = updatePAMObject(userDocument, userName, uid);
+
+	if (LOGGER.isDebugEnabled()) {
+	    LOGGER.debug("storing PAM object: xwikiUserName={}, userName={}, uid={}, needsUpdate={}",
+			 xwikiUserName, userName, uid, needsUpdate);
+	}
 
         if (needsUpdate) {
             this.context.getWiki().saveDocument(userDocument, "Update PAM user profile", this.context);
@@ -177,11 +182,11 @@ public class PAMProfileXClass
      * Update PAM profile object with provided PAM user informations.
      * 
      * @param userDocument the user profile page to update.
-     * @param dn the dn to store in the PAM profile.
+     * @param userName the userName to store in the PAM profile.
      * @param uid the uid to store in the PAM profile.
      * @return true if modifications has been made to provided user profile, false otherwise.
      */
-    public boolean updatePAMObject(XWikiDocument userDocument, String dn, String uid)
+    public boolean updatePAMObject(XWikiDocument userDocument, String userName, String uid)
     {
         BaseObject pamObject = userDocument.getXObject(this.pamClass.getDocumentReference(), true, this.context);
 
@@ -189,9 +194,9 @@ public class PAMProfileXClass
 
         boolean needsUpdate = false;
 
-        String objDn = getDn(pamObject);
-        if (!dn.equalsIgnoreCase(objDn)) {
-            map.put(PAM_XFIELD_USER_NAME, dn);
+        String objUserName = getUserName(pamObject);
+        if (!userName.equalsIgnoreCase(objUserName)) {
+            map.put(PAM_XFIELD_USER_NAME, userName);
             needsUpdate = true;
         }
 
@@ -216,27 +221,27 @@ public class PAMProfileXClass
      * @param uid the PAM unique id.
      * @return the user profile containing PAM uid.
      */
-    public XWikiDocument searchDocumentByUid(String uid)
+    public XWikiDocument searchDocumentByUserName(String userName)
     {
         XWikiDocument doc = null;
 
         List<XWikiDocument> documentList;
         try {
-            // Search for uid in database, make sure to compare uids lower cased to make to to not take into account the
+            // Search for userName in database, make sure to compare userNames lower cased to make to to not take into account the
             // case since PAM does not
             String sql =
                 ", BaseObject as obj, StringProperty as prop where doc.fullName=obj.name and obj.className=? and obj.id=prop.id.id and prop.name=? and lower(prop.value)=?";
 
             documentList = this.context.getWiki().getStore().searchDocuments(sql, false, false, false, 0, 0,
-                Arrays.asList(PAM_XCLASS, PAM_XFIELD_UID, uid.toLowerCase()), this.context);
+                Arrays.asList(PAM_XCLASS, PAM_XFIELD_USER_NAME, userName.toLowerCase()), this.context);
         } catch (XWikiException e) {
-            LOGGER.error("Fail to search for document containing pam uid [" + uid + "]", e);
+            LOGGER.error("Fail to search for document containing pam userName [" + userName + "]", e);
 
             documentList = Collections.emptyList();
         }
 
         if (documentList.size() > 1) {
-            LOGGER.error("There is more than one user profile for PAM uid [" + uid + "]");
+            LOGGER.error("There is more than one user profile for PAM userName [" + userName + "]");
         }
 
         if (!documentList.isEmpty()) {

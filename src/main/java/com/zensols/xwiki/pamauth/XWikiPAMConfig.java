@@ -57,8 +57,6 @@ public class XWikiPAMConfig
 
     private ConfigurationSource cfgConfigurationSource;
 
-    private final Map<String, String> finalMemoryConfiguration;
-
     /**
      * Character user to link XWiki field name and PAM field name in user mappings property.
      */
@@ -89,60 +87,13 @@ public class XWikiPAMConfig
         this.configurationSource = configurationSource;
 
         this.cfgConfigurationSource = Utils.getComponent(ConfigurationSource.class, "xwikicfg");
-
-        this.finalMemoryConfiguration = new HashMap<>();
-
-        if (userId != null) {
-            parseRemoteUser(userId);
-        }
     }
 
-    /**
-     * @return the custom configuration. Can be used to override any property.
-     * @since 9.0
-     */
-    public Map<String, String> getMemoryConfiguration()
-    {
-        return this.memoryConfiguration;
-    }
-
-    private void parseRemoteUser(String ssoRemoteUser)
-    {
-        this.memoryConfiguration.put("auth.input", ssoRemoteUser);
-        this.memoryConfiguration.put("uid", ssoRemoteUser.trim());
-
-        Pattern remoteUserParser = getRemoteUserPattern();
-
-        LOGGER.debug("remoteUserParser: {}", remoteUserParser);
-
-        if (remoteUserParser != null) {
-            Matcher marcher = remoteUserParser.matcher(ssoRemoteUser);
-
-            if (marcher.find()) {
-                int groupCount = marcher.groupCount();
-                if (groupCount == 0) {
-                    this.memoryConfiguration.put("uid", marcher.group().trim());
-                } else {
-                    for (int g = 1; g <= groupCount; ++g) {
-                        String groupValue = marcher.group(g);
-
-                        List<String> remoteUserMapping = getRemoteUserMapping(g);
-
-                        for (String configName : remoteUserMapping) {
-                            this.memoryConfiguration.put(configName, convertRemoteUserMapping(configName, groupValue));
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private String convertRemoteUserMapping(String propertyName, String propertyValue)
     {
         Map<String, String> hostConvertor = getRemoteUserMapping(propertyName, true);
-
         LOGGER.debug("hostConvertor: {}", hostConvertor);
-
         String converted = hostConvertor.get(propertyValue.toLowerCase());
 
         return converted != null ? converted : propertyValue;
@@ -176,10 +127,6 @@ public class XWikiPAMConfig
         // If not found, check in xwiki.cfg
         if (param == null || "".equals(param)) {
             param = this.cfgConfigurationSource.getProperty(cfgName);
-        }
-
-        if (param == null) {
-            param = this.finalMemoryConfiguration.get(name);
         }
 
         if (param == null) {
@@ -251,115 +198,6 @@ public class XWikiPAMConfig
         String param = getPAMParam("pam", "xwiki.authentication.pam", "0");
 
         return param != null && param.equals("1");
-    }
-
-    /**
-     * Get mapping between XWiki groups names and PAM groups names.
-     *
-     * @return the mapping between XWiki users and PAM users. The key is the XWiki group, and the value is the list of
-     *         mapped PAM groups.
-     * @since 9.1.1
-     */
-    public Map<String, Set<String>> getGroupMappings()
-    {
-        String param = getPAMParam("pam_group_mapping", "");
-
-        Map<String, Set<String>> groupMappings = new HashMap<String, Set<String>>();
-
-        if (param.trim().length() > 0) {
-            char[] buffer = param.trim().toCharArray();
-            boolean escaped = false;
-            StringBuilder mapping = new StringBuilder(param.length());
-            for (int i = 0; i < buffer.length; ++i) {
-                char c = buffer[i];
-
-                if (escaped) {
-                    mapping.append(c);
-                    escaped = false;
-                } else {
-                    if (c == '\\') {
-                        escaped = true;
-                    } else if (c == '|') {
-                        addGroupMapping(mapping.toString(), groupMappings);
-                        mapping.setLength(0);
-                    } else {
-                        mapping.append(c);
-                    }
-                }
-            }
-
-            if (mapping.length() > 0) {
-                addGroupMapping(mapping.toString(), groupMappings);
-            }
-        }
-
-        return groupMappings;
-    }
-
-    /**
-     * @param mapping the mapping to parse
-     * @param groupMappings the map to add parsed group mapping to
-     */
-    private void addGroupMapping(String mapping, Map<String, Set<String>> groupMappings)
-    {
-        int splitIndex = mapping.indexOf('=');
-
-        if (splitIndex < 1) {
-            LOGGER.error("Error parsing pam_group_mapping attribute [{}]", mapping);
-        } else {
-            String xwikigroup = mapping.substring(0, splitIndex);
-            String pamgroup = mapping.substring(splitIndex + 1);
-
-            Set<String> pamGroups = groupMappings.get(xwikigroup);
-
-            if (pamGroups == null) {
-                pamGroups = new HashSet<String>();
-                groupMappings.put(xwikigroup, pamGroups);
-            }
-
-            pamGroups.add(pamgroup);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Groupmapping found [{}] [{}]", xwikigroup, pamGroups);
-            }
-        }
-    }
-
-    /**
-     * Get mapping between XWiki users attributes and PAM users attributes. The key in the Map is lower cased to easily
-     * support any case.
-     *
-     * @param attrListToFill the list to fill with extracted PAM fields to use in PAM search.
-     * @return the mapping between XWiki groups and PAM groups.
-     * @since 9.1.1
-     */
-    public Map<String, String> getUserMappings(List<String> attrListToFill)
-    {
-        Map<String, String> userMappings = new HashMap<>();
-
-        String pamFieldMapping = getPAMParam("pam_fields_mapping", null);
-
-        if (pamFieldMapping != null && pamFieldMapping.length() > 0) {
-            String[] fields = pamFieldMapping.split(USERMAPPING_SEP);
-
-            for (int j = 0; j < fields.length; j++) {
-                String[] field = fields[j].split(USERMAPPING_XWIKI_PAM_LINK);
-                if (2 == field.length) {
-                    String xwikiattr = field[0].replace(" ", "");
-                    String pamattr = field[1].replace(" ", "");
-
-                    userMappings.put(pamattr.toLowerCase(), xwikiattr);
-
-                    if (attrListToFill != null) {
-                        attrListToFill.add(pamattr);
-                    }
-                } else {
-                    LOGGER.error("Error parsing PAM fields mapping attribute from configuration, got [{}]", fields[j]);
-                }
-            }
-        }
-
-        return userMappings;
     }
 
     /**
@@ -526,16 +364,5 @@ public class XWikiPAMConfig
     public String getHttpHeader()
     {
         return this.cfgConfigurationSource.getProperty("xwiki.authentication.pam.httpHeader");
-    }
-
-    /**
-     * @param key the key added to the map
-     * @param value the value of the key added to the map
-     * @since 9.2
-     */
-    @Unstable
-    public void setFinalProperty(String key, String value)
-    {
-        this.finalMemoryConfiguration.put(key, value);
     }
 }

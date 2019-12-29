@@ -8,23 +8,23 @@ compile:
 
 .PHONY:	test
 test:
-	mvn -Plogging-deps test
+	mvn test
 
 .PHONY:	package
 package:
-	mvn -Plogging-deps package
+	mvn package
 
 .PHONY:	install
 install:
-	mvn -Plogging-deps install
+	mvn install
 
 .PHONY:	site
 site:
-	mvn -Plogging-deps site
+	mvn site
 
 .PHONY:	run
 run:
-	mvn -Plogging-deps compile exec:exec
+	mvn compile exec:exec
 
 .PHONY:	docs
 docs:
@@ -32,7 +32,7 @@ docs:
 
 .PHONY:	dist
 dist:
-	mvn -Plogging-deps package appassembler:assemble
+	mvn package appassembler:assemble
 
 .PHONY:	clean
 clean:

@@ -1,13 +1,5 @@
 package com.zensols.xwiki.pamauth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.user.api.XWikiUser;
-import com.xpn.xwiki.user.impl.xwiki.XWikiAuthServiceImpl;
-
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.List;
@@ -16,16 +8,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.securityfilter.filter.SecurityRequestWrapper;
-import org.securityfilter.realm.SimplePrincipal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xwiki.context.Execution;
-import org.xwiki.context.ExecutionContext;
-import org.xwiki.text.StringUtils;
-import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.DocumentReference;
-
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -33,44 +15,14 @@ import com.xpn.xwiki.user.api.XWikiUser;
 import com.xpn.xwiki.user.impl.xwiki.XWikiAuthServiceImpl;
 import com.xpn.xwiki.web.Utils;
 import com.xpn.xwiki.web.XWikiRequest;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
+import org.securityfilter.filter.SecurityRequestWrapper;
+import org.securityfilter.realm.SimplePrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.cache.Cache;
-import org.xwiki.cache.CacheException;
-import org.xwiki.cache.config.CacheConfiguration;
+import org.xwiki.context.Execution;
+import org.xwiki.context.ExecutionContext;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.rendering.syntax.Syntax;
-
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiAttachment;
-import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
-import com.xpn.xwiki.objects.classes.BaseClass;
-import com.xpn.xwiki.objects.classes.ListClass;
-import com.xpn.xwiki.objects.classes.PropertyClass;
-import com.xpn.xwiki.web.Utils;
+import org.xwiki.text.StringUtils;
 
 
 public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
@@ -374,7 +326,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
     /**
      * Try PAM login for given context and return {@link Principal}.
      * 
-     * @param authInput the id of the user provided in input
+     * @param userName the id of the user provided in input
      * @param validXWikiUserName the name of the XWiki user to log in.
      * @param password the password of the user to log in.
      * @param trusted true in case of trusted authentication (i.e. should the credentials be validated or not)
@@ -387,34 +339,34 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
      * @throws PAMException error when login.
      * @since 9.0
      */
-    protected Principal pamAuthenticateInContext(String authInput, String validXWikiUserName, String password,
-        boolean trusted, XWikiContext context, boolean local)
+    protected Principal pamAuthenticateInContext(String userNameRaw, String validXWikiUserName, String password,
+						 boolean trusted, XWikiContext context, boolean local)
         throws XWikiException, UnsupportedEncodingException
     {
         Principal principal = null;
-	String trimedAuthInput = authInput.trim();
-	XWikiPAMConfig configuration = initConfiguration(trimedAuthInput);
+	String userName = userNameRaw.trim();
+	XWikiPAMConfig configuration = initConfiguration(userName);
 
         if (!configuration.isPAMEnabled()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PAM authentication failed: PAM not active");
             }
 	} else {
-	    String uid = configuration.getMemoryConfiguration().get("uid");
 	    XWikiPAMUtils pamUtils = new XWikiPAMUtils(configuration);
-	    XWikiDocument userProfile = pamUtils.getUserProfileByUid(validXWikiUserName, trimedAuthInput, context);
-            //boolean isNewUser;
+	    XWikiDocument userProfile = pamUtils.getUserProfileByUserName(validXWikiUserName, userName, context);
 
 	    if (LOGGER.isDebugEnabled()) {
-		LOGGER.debug("PAM authentication on uid: " + uid);
+		LOGGER.debug("PAM authentication on xwikName: {}, userName: {}, with profile: {}",
+			     validXWikiUserName, userName, userProfile);
 	    }
 
-            userProfile = pamUtils.syncUser(userProfile, uid, trimedAuthInput, context);
+	    if (trusted) password = null;
+            userProfile = pamUtils.syncUser(userProfile, userName, password, context);
 
 	    if (userProfile == null) {
 		throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_INIT,
 					 "PAM authentication failed: could not validate the password: wrong password for "
-					 + uid);
+					 + userName);
 	    }
 
 	    if (local) {
