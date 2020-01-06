@@ -31,34 +31,8 @@
 	</developer>
     </developers>
 
-    <repositories>
-        <repository>
-            <id>xwiki-snapshots</id>
-            <name>XWiki Nexus Snapshot Repository Proxy</name>
-            <url>http://nexus.xwiki.org/nexus/content/groups/public-snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>xwiki-releases</id>
-            <name>XWiki Nexus Releases Repository Proxy</name>
-            <url>http://nexus.xwiki.org/nexus/content/groups/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <platform.version>10.11.10</platform.version>
         <xwiki.revapi.skip>true</xwiki.revapi.skip>
         <xwiki.extension.name>PAM Authenticator</xwiki.extension.name>
         <xwiki.extension.category>api</xwiki.extension.category>
@@ -75,7 +49,6 @@
         <dependency>
             <groupId>org.xwiki.platform</groupId>
             <artifactId>xwiki-platform-oldcore</artifactId>
-            <version>${platform.version}</version>
         </dependency>
 
         <!-- pwauth wrapper -->
