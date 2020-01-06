@@ -22,9 +22,13 @@ install:
 site:
 	mvn site
 
-.PHONY:	release
-release:
+.PHONY:	prepare-release
+prepare-release:
 	mvn release:prepare -e
+
+.PHONY:	perform-release
+perform-release:
+	mvn release:perform -e
 
 .PHONY:	run
 run:
