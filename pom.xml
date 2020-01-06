@@ -39,6 +39,7 @@
         <xwiki.extension.category>api</xwiki.extension.category>
         <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
         <xwiki.issueManagement.jira.id>PAMAUTH</xwiki.issueManagement.jira.id>
+        <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
     </properties>
 
     <dependencies>
