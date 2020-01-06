@@ -65,7 +65,7 @@ An extensive changelog is available [here](CHANGELOG.md).
 
 ## License
 
-Copyright © 2019 Paul Landes
+Copyright © 2019 - 2020 Paul Landes
 
 Apache License version 2.0
 
