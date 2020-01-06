@@ -40,9 +40,9 @@ package].
 
 ## Documentation
 
-More [documentation](https://plandes.github.io/pamauth/):
-* [Javadoc](https://plandes.github.io/pamauth/apidocs/index.html)
-* [Dependencies](https://plandes.github.io/pamauth/dependencies.html)
+More [documentation](https://xwiki-contrib.github.io/authenticator-pam/):
+* [Javadoc](https://xwiki-contrib.github.io/authenticator-pam/apidocs/index.html)
+* [Dependencies](https://xwiki-contrib.github.io/authenticator-pam/dependencies.html)
 
 
 ## Building
