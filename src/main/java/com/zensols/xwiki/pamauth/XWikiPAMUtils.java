@@ -14,7 +14,8 @@ import org.xwiki.model.reference.DocumentReference;
 import com.zensols.unix.userauth.UserManager;
 import com.zensols.unix.userauth.User;
 
-class XWikiPAMUtils {
+class XWikiPAMUtils
+{
     /**
      * Logging tool.
      */
@@ -28,10 +29,10 @@ class XWikiPAMUtils {
     private XWikiPAMConfig configuration;
     private UserManager userManager;
 
-    public XWikiPAMUtils(XWikiPAMConfig configuration)
+    XWikiPAMUtils(XWikiPAMConfig configuration)
     {
-	this.configuration = configuration;
-	this.userManager = new UserManager();
+        this.configuration = configuration;
+        this.userManager = new UserManager();
     }
 
     /**
@@ -42,28 +43,28 @@ class XWikiPAMUtils {
      */
     private XWikiDocument getAvailableUserProfile(String validXWikiUserName, XWikiContext context) throws XWikiException
     {
-	DocumentReference userReference =
-	    new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName);
+        DocumentReference userReference =
+            new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName);
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("looking up {} in context={} with ref={}", validXWikiUserName, context, userReference);
-	}
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("looking up {} in context={} with ref={}", validXWikiUserName, context, userReference);
+        }
 
-	// Check if the default profile document is available
-	for (int i = 0; true; ++i) {
-	    if (i > 0) {
-		userReference =
-		    new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName + "_" + i);
-	    }
+        // Check if the default profile document is available
+        for (int i = 0; true; ++i) {
+            if (i > 0) {
+                userReference =
+                    new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName + "_" + i);
+            }
 
-	    XWikiDocument doc = context.getWiki().getDocument(userReference, context);
+            XWikiDocument doc = context.getWiki().getDocument(userReference, context);
 
-	    // Don't use non user existing document
-	    if (doc.isNew()) {
-		LOGGER.debug("returning new document");
-		return doc;
-	    }
-	}
+            // Don't use non user existing document
+            if (doc.isNew()) {
+                LOGGER.debug("returning new document");
+                return doc;
+            }
+        }
     }
 
     /**
@@ -89,40 +90,40 @@ class XWikiPAMUtils {
      * @throws XWikiException when a problem occurs while retrieving the user profile
      */
     public XWikiDocument getUserProfileByUserName(String validXWikiUserName, String userName, XWikiContext context)
-	throws XWikiException
+        throws XWikiException
     {
-	PAMProfileXClass pamXClass = new PAMProfileXClass(context);
-	// Try default profile name (generally in the cache)
-	XWikiDocument userProfile = null;
+        PAMProfileXClass pamXClass = new PAMProfileXClass(context);
+        // Try default profile name (generally in the cache)
+        XWikiDocument userProfile = null;
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("profile by validWiki={}, userName={}", validXWikiUserName, userName);
-	}
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("profile by validWiki={}, userName={}", validXWikiUserName, userName);
+        }
 
-	if (validXWikiUserName != null) {
-	    userProfile = context.getWiki()
-		.getDocument(new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName), context);
-	}
+        if (validXWikiUserName != null) {
+            userProfile = context.getWiki()
+                .getDocument(new DocumentReference(context.getWikiId(), XWIKI_USER_SPACE, validXWikiUserName), context);
+        }
 
-	if ((userProfile == null) || !userName.equalsIgnoreCase(pamXClass.getUserName(userProfile))) {
-	    // Search for existing profile with provided userName
-	    userProfile = pamXClass.searchDocumentByUserName(userName);
+        if ((userProfile == null) || !userName.equalsIgnoreCase(pamXClass.getUserName(userProfile))) {
+            // Search for existing profile with provided userName
+            userProfile = pamXClass.searchDocumentByUserName(userName);
 
-	    if (LOGGER.isDebugEnabled()) {
-		LOGGER.debug("searched userName={} -> profile={}", userName, userProfile);
-	    }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("searched userName={} -> profile={}", userName, userProfile);
+            }
 
-	    // Resolve default profile patch of an userName
-	    if (userProfile == null && validXWikiUserName != null) {
-		userProfile = getAvailableUserProfile(validXWikiUserName, context);
+            // Resolve default profile patch of an userName
+            if (userProfile == null && validXWikiUserName != null) {
+                userProfile = getAvailableUserProfile(validXWikiUserName, context);
 
-		if (LOGGER.isDebugEnabled()) {
-		    LOGGER.debug("resolved user profile={}", userProfile);
-		}
-	    }
-	}
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("resolved user profile={}", userProfile);
+                }
+            }
+        }
 
-	return userProfile;
+        return userProfile;
     }
 
     /**
@@ -136,45 +137,46 @@ class XWikiPAMUtils {
      * @throws XWikiException error when creating XWiki user.
      */
     protected void createUserFromPAM(XWikiDocument userProfile, Map<String, String> attributes,
-				     String userName, String uid, XWikiContext context)
-	throws XWikiException
+                                     String userName, String uid, XWikiContext context)
+        throws XWikiException
     {
-	Map<String, Object> map = new java.util.HashMap(attributes);
+        Map<String, Object> map = new java.util.HashMap<String, Object>(attributes);
 
-	// Mark user active
-	map.put("active", "1");
+        // Mark user active
+        map.put("active", "1");
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("storing attributes for userName={}, uid={}: {}", userName, uid, map);
-	}
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("storing attributes for userName={}, uid={}: {}", userName, uid, map);
+        }
 
-	XWikiException createUserError = null;
-	try {
-	    context.getWiki().createUser(userProfile.getDocumentReference().getName(), map, context);
-	} catch (XWikiException e) {
-	    createUserError = e;
-	}
+        XWikiException createUserError = null;
+        try {
+            context.getWiki().createUser(userProfile.getDocumentReference().getName(), map, context);
+        } catch (XWikiException e) {
+            createUserError = e;
+        }
 
-	XWikiDocument createdUserProfile = context.getWiki().getDocument(userProfile.getDocumentReference(), context);
-	if (createdUserProfile.isNew()) {
-	    if (createUserError != null) {
-		throw createUserError;
-	    } else {
-		throw new XWikiPAMException("User [" + userProfile.getDocumentReference() + "] hasn't been created for unknown reason");
-	    }
-	} else if (createUserError != null) {
-	    // Whatever crashed the createUser API it was after the actual user creation so let's log an error and
-	    // continue
-	    LOGGER.error("Unexpected error when creating user [{}]", userProfile.getDocumentReference(),
-			 createUserError);
-	}
+        XWikiDocument createdUserProfile = context.getWiki().getDocument(userProfile.getDocumentReference(), context);
+        if (createdUserProfile.isNew()) {
+            if (createUserError != null) {
+                throw createUserError;
+            } else {
+                throw new XWikiPAMException("User [" + userProfile.getDocumentReference()
+                                            + "] hasn't been created for unknown reason");
+            }
+        } else if (createUserError != null) {
+            // Whatever crashed the createUser API it was after the actual user creation so let's log an error and
+            // continue
+            LOGGER.error("Unexpected error when creating user [{}]", userProfile.getDocumentReference(),
+                         createUserError);
+        }
 
-	// Update pam profile object
-	PAMProfileXClass pamXClass = new PAMProfileXClass(context);
+        // Update pam profile object
+        PAMProfileXClass pamXClass = new PAMProfileXClass(context);
 
-	if (pamXClass.updatePAMObject(createdUserProfile, userName, uid)) {
-	    context.getWiki().saveDocument(createdUserProfile, "Created user profile from PAM server", context);
-	}
+        if (pamXClass.updatePAMObject(createdUserProfile, userName, uid)) {
+            context.getWiki().saveDocument(createdUserProfile, "Created user profile from PAM server", context);
+        }
     }
 
     /**
@@ -188,60 +190,60 @@ class XWikiPAMUtils {
      * @throws XWikiException error when updating XWiki user.
      */
     protected void updateUserFromPAM(XWikiDocument userProfile, Map<String, String> userMappings,
-				     String userName, String uid, XWikiContext context) throws XWikiException
+                                     String userName, String uid, XWikiContext context) throws XWikiException
     {
-	BaseClass userClass = context.getWiki().getUserClass(context);
-	BaseObject userObj = userProfile.getXObject(userClass.getDocumentReference());
+        BaseClass userClass = context.getWiki().getUserClass(context);
+        BaseObject userObj = userProfile.getXObject(userClass.getDocumentReference());
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("Start synchronization of PAM profile with existing user profile based on mapping [{}]",
-			 userMappings);
-	}
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Start synchronization of PAM profile with existing user profile based on mapping [{}]",
+                         userMappings);
+        }
 
-	// Clone the user object
-	BaseObject clonedUser = userObj.clone();
+        // Clone the user object
+        BaseObject clonedUser = userObj.clone();
 
-	// Apply all attributes to the clone
-	clonedUser.getXClass(context).fromMap(userMappings, clonedUser);
+        // Apply all attributes to the clone
+        clonedUser.getXClass(context).fromMap(userMappings, clonedUser);
 
-	// Let BaseObject#apply tell us if something changed or not
-	boolean needsUpdate = userObj.apply(clonedUser, false);
+        // Let BaseObject#apply tell us if something changed or not
+        boolean needsUpdate = userObj.apply(clonedUser, false);
 
-	// Update pam profile object
-	PAMProfileXClass ldaXClass = new PAMProfileXClass(context);
-	needsUpdate |= ldaXClass.updatePAMObject(userProfile, userName, uid);
+        // Update pam profile object
+        PAMProfileXClass ldaXClass = new PAMProfileXClass(context);
+        needsUpdate |= ldaXClass.updatePAMObject(userProfile, userName, uid);
 
-	if (needsUpdate) {
-	    context.getWiki().saveDocument(userProfile, "Synchronized user profile with PAM server", true, context);
-	}
+        if (needsUpdate) {
+            context.getWiki().saveDocument(userProfile, "Synchronized user profile with PAM server", true, context);
+        }
     }
 
     protected Map<String, String> getUserAttributes(String userName, String password) throws XWikiException {
-	Map<String, String> attributes = null;
-	User user = this.userManager.createUser(userName);
-	boolean userExists = user.exists();
-	boolean isAuthorized = userExists && ((password == null) || user.isAuthorized(password));
+        Map<String, String> attributes = null;
+        User user = this.userManager.createUser(userName);
+        boolean userExists = user.exists();
+        boolean isAuthorized = userExists && ((password == null) || user.isAuthorized(password));
 
-	LOGGER.debug("User {}: null password={}, exists={}, authorized={}",
-		     userName, (password == null), userExists, isAuthorized);
+        LOGGER.debug("User {}: null password={}, exists={}, authorized={}",
+                     userName, (password == null), userExists, isAuthorized);
 
-	if (userExists && isAuthorized) {
-	    String name = user.getFullName();
-	    String[] nameParts = name.split(" ");
+        if (userExists && isAuthorized) {
+            String name = user.getFullName();
+            String[] nameParts = name.split(" ");
 
-	    attributes = new  java.util.HashMap();
-	    attributes.put(PAMProfileXClass.PAM_XFIELD_USER_NAME, userName);
-	    attributes.put(PAMProfileXClass.PAM_XFIELD_UID, String.valueOf(user.getUserId()));
-	    attributes.put("full_name", name);
-	    if (nameParts.length == 2) {
-		attributes.put("first_name", nameParts[0]);
-		attributes.put("last_name", nameParts[1]);
-	    }
-	}
+            attributes = new  java.util.HashMap<String, String>();
+            attributes.put(PAMProfileXClass.PAM_XFIELD_USER_NAME, userName);
+            attributes.put(PAMProfileXClass.PAM_XFIELD_UID, String.valueOf(user.getUserId()));
+            attributes.put("full_name", name);
+            if (nameParts.length == 2) {
+                attributes.put("first_name", nameParts[0]);
+                attributes.put("last_name", nameParts[1]);
+            }
+        }
 
-	LOGGER.debug("User {}: attributes: {}", userName, attributes);
+        LOGGER.debug("User {}: attributes: {}", userName, attributes);
 
-	return attributes;
+        return attributes;
     }
 
     /**
@@ -256,45 +258,47 @@ class XWikiPAMUtils {
      * @throws XWikiException error when updating or creating XWiki user.
      */
     public XWikiDocument syncUser(XWikiDocument userProfile, String userName, String password, XWikiContext context)
-	throws XWikiException
+        throws XWikiException
     {
-	// check if we have to create the user
-	if (userProfile == null || userProfile.isNew() || (password != null) ||
-	    this.configuration.getPAMParam("pam_update_user", "0").equals("1")) {
+        XWikiDocument userProf = userProfile;
 
-	    LOGGER.debug("Getting attributes for user name: {}, profile={}", userName, userProfile);
-	    Map<String, String> attributes = getUserAttributes(userName, password);
+        // check if we have to create the user
+        if (userProf == null || userProf.isNew() || (password != null)
+            || this.configuration.getPAMParam("pam_update_user", "0").equals("1")) {
 
-	    if (attributes != null) {
-		String uid = attributes.get(PAMProfileXClass.PAM_XFIELD_UID);
+            LOGGER.debug("Getting attributes for user name: {}, profile={}", userName, userProf);
+            Map<String, String> attributes = getUserAttributes(userName, password);
 
-		// Load XWiki user document if we don't already have them
-		if (userProfile == null) {
-		    userProfile = getAvailableUserProfile(attributes, context);
-		}
+            if (attributes != null) {
+                String uid = attributes.get(PAMProfileXClass.PAM_XFIELD_UID);
 
-		LOGGER.debug("Loaded user profile: {}, new={}", userProfile, userProfile.isNew());
+                // Load XWiki user document if we don't already have them
+                if (userProf == null) {
+                    userProf = getAvailableUserProfile(attributes, context);
+                }
 
-		if (userProfile.isNew()) {
-		    LOGGER.debug("Creating new XWiki user based on PAM attribues located at [{}]", userName);
+                LOGGER.debug("Loaded user profile: {}, new={}", userProf, userProf.isNew());
 
-		    createUserFromPAM(userProfile, attributes, userName, uid, context);
+                if (userProf.isNew()) {
+                    LOGGER.debug("Creating new XWiki user based on PAM attribues located at [{}]", userName);
 
-		    LOGGER.debug("New XWiki user created: [{}]", userProfile.getDocumentReference());
-		} else {
-		    LOGGER.debug("Updating existing user with PAM attribues located at [{}]", userName);
+                    createUserFromPAM(userProf, attributes, userName, uid, context);
 
-		    try {
-			updateUserFromPAM(userProfile, attributes, userName, uid, context);
-		    } catch (XWikiException e) {
-			LOGGER.error("Failed to synchronise user's informations", e);
-		    }
-		}
-	    } else {
-		userProfile = null;
-	    }
-	}
+                    LOGGER.debug("New XWiki user created: [{}]", userProf.getDocumentReference());
+                } else {
+                    LOGGER.debug("Updating existing user with PAM attribues located at [{}]", userName);
 
-	return userProfile;
+                    try {
+                        updateUserFromPAM(userProf, attributes, userName, uid, context);
+                    } catch (XWikiException e) {
+                        LOGGER.error("Failed to synchronise user's informations", e);
+                    }
+                }
+            } else {
+                userProf = null;
+            }
+        }
+
+        return userProf;
     }
 }

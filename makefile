@@ -22,6 +22,10 @@ install:
 site:
 	mvn site
 
+.PHONY:	release
+release:
+	mvn release:prepare -e
+
 .PHONY:	run
 run:
 	mvn compile exec:exec

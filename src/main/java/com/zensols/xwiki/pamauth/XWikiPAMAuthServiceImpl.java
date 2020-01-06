@@ -1,10 +1,6 @@
 package com.zensols.xwiki.pamauth;
 
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,14 +17,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.context.Execution;
 import org.xwiki.context.ExecutionContext;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.text.StringUtils;
 
 
-public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
+/**
+ * Implementation of the PAM authorization module.
+ *
+ * @version $Id$
+ */
+public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl
+{
     private static final Logger LOGGER = LoggerFactory.getLogger(XWikiPAMAuthServiceImpl.class);
 
     private static final String CONTEXT_CONFIGURATION = "pam.configuration";
+    private static final String PAM_REMOTE_ATTRIBUTE = "pam.remoteuser";
+    private static final String PAM_MESSAGE_PROP = "message";
 
     private final ConcurrentMap<String, String> lockMap = new ConcurrentHashMap<>();
     private Execution execution;
@@ -85,8 +88,9 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
         Principal principal =
             (Principal) request.getSession().getAttribute(SecurityRequestWrapper.PRINCIPAL_SESSION_KEY);
 
-        if (principal != null) {
-            String storedRemoteUser = (String) request.getSession().getAttribute("pam.remoteuser");
+        if (principal != null)
+        {
+            String storedRemoteUser = (String) request.getSession().getAttribute(PAM_REMOTE_ATTRIBUTE);
 
             // If the remote user changed authenticate again
             if (remoteUser.equals(storedRemoteUser)) {
@@ -142,7 +146,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
 
             // Remember user in the session
             request.getSession().setAttribute(SecurityRequestWrapper.PRINCIPAL_SESSION_KEY, principal);
-            request.getSession().setAttribute("pam.remoteuser", context.getRequest().getRemoteUser());
+            request.getSession().setAttribute(PAM_REMOTE_ATTRIBUTE, context.getRequest().getRemoteUser());
 
             user = new XWikiUser(principal.getName());
         } else {
@@ -159,7 +163,6 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
 
     private Principal checkAuthSSOSync(String remoteUser, XWikiRequest request, XWikiContext context)
     {
-        // TODO: replace with computeIfAbsent when moving to Java 8
         String lock = this.lockMap.putIfAbsent(remoteUser, remoteUser);
         if (lock == null) {
             lock = this.lockMap.get(remoteUser);
@@ -259,7 +262,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
         }
 
         /*
-         * TODO: Put the next 4 following "if" in common with XWikiAuthService to ensure coherence This method was
+         * TO DO: Put the next 4 following "if" in common with XWikiAuthService to ensure coherence This method was
          * returning null on failure so I preserved that behaviour, while adding the exact error messages to the context
          * given as argument. However, the right way to do this would probably be to throw XWikiException-s.
          */
@@ -277,7 +280,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
 
         // Check for empty usernames
         if (userId.equals("")) {
-            context.put("message", "nousername");
+            context.put(PAM_MESSAGE_PROP, "nousername");
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PAM authentication failed: login empty");
@@ -288,7 +291,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
 
         // Check for empty passwords
         if ((password == null) || (password.trim().equals(""))) {
-            context.put("message", "nopassword");
+            context.put(PAM_MESSAGE_PROP, "nopassword");
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PAM authentication failed: password null or empty");
@@ -338,42 +341,46 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
      * @since 9.0
      */
     protected Principal pamAuthenticateInContext(String userNameRaw, String validXWikiUserName, String password,
-						 boolean trusted, XWikiContext context, boolean local)
+                                                 boolean trusted, XWikiContext context, boolean local)
         throws XWikiException
     {
         Principal principal = null;
-	String userName = userNameRaw.trim();
-	XWikiPAMConfig configuration = initConfiguration(userName);
+        String userName = userNameRaw.trim();
+        XWikiPAMConfig configuration = initConfiguration(userName);
+        String passwd = password;
 
         if (!configuration.isPAMEnabled()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PAM authentication failed: PAM not active");
             }
-	} else {
-	    XWikiPAMUtils pamUtils = new XWikiPAMUtils(configuration);
-	    XWikiDocument userProfile = pamUtils.getUserProfileByUserName(validXWikiUserName, userName, context);
+        } else {
+            XWikiPAMUtils pamUtils = new XWikiPAMUtils(configuration);
+            XWikiDocument userProfile = pamUtils.getUserProfileByUserName(validXWikiUserName, userName, context);
 
-	    if (LOGGER.isDebugEnabled()) {
-		LOGGER.debug("PAM authentication on xwikName: {}, userName: {}, with profile: {}",
-			     validXWikiUserName, userName, userProfile);
-	    }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PAM authentication on xwikName: {}, userName: {}, with profile: {}",
+                             validXWikiUserName, userName, userProfile);
+            }
 
-	    if (trusted) password = null;
-            userProfile = pamUtils.syncUser(userProfile, userName, password, context);
+            if (trusted)
+            {
+                passwd = null;
+            }
+            userProfile = pamUtils.syncUser(userProfile, userName, passwd, context);
 
-	    if (userProfile == null) {
-		throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_INIT,
-					 "PAM authentication failed: could not validate the password: wrong password for "
-					 + userName);
-	    }
+            if (userProfile == null) {
+                throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_INIT,
+                                         "PAM authentication failed: could not validate the password: "
+                                         + "wrong password for " + userName);
+            }
 
-	    if (local) {
-		principal = new SimplePrincipal(userProfile.getFullName());
-	    } else {
-		principal = new SimplePrincipal(userProfile.getPrefixedFullName());
-	    }
-	}
+            if (local) {
+                principal = new SimplePrincipal(userProfile.getFullName());
+            } else {
+                principal = new SimplePrincipal(userProfile.getPrefixedFullName());
+            }
+        }
 
-	return principal;
+        return principal;
     }
 }

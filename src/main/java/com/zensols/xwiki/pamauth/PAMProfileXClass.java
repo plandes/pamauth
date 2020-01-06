@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.LocalDocumentReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -22,24 +21,31 @@ import com.xpn.xwiki.user.api.XWikiRightService;
 
 /**
  * Helper to manager PAM profile XClass and XObject.
- * 
+ *
  * @version $Id$
  */
 public class PAMProfileXClass
 {
+    /** Identifier in a hibernate document. */
     public static final String PAM_XCLASS = "XWiki.PAMProfileClass";
+    /** The user name text field in the XWiki page. */
     public static final String PAM_XFIELD_USER_NAME = "username";
+    /** The user name description text field in the XWiki page. */
     public static final String PAM_XFIELDPN_USER_NAME = "PAM user unique identifier";
+    /** The user (UNIX numeric) ID field in the XWiki page. */
     public static final String PAM_XFIELD_UID = "uid";
+    /** The user (UNIX numeric) ID description field in the XWiki page. */
     public static final String PAM_XFIELDPN_UID = "PAM UID";
 
     /**
      * The XWiki space where users are stored.
      */
-    private static final String XWIKI_USER_SPACE = "XWiki";
+    public static final String XWIKI_USER_SPACE = "XWiki";
 
+    /** PAM profile document ID. */
     public static final EntityReference PAMPROFILECLASS_REFERENCE =
-        new EntityReference("PAMProfileClass", EntityType.DOCUMENT, new EntityReference("XWiki", EntityType.SPACE));
+        new EntityReference("PAMProfileClass", EntityType.DOCUMENT,
+                            new EntityReference(XWIKI_USER_SPACE, EntityType.SPACE));
 
     /**
      * Logging tool.
@@ -50,6 +56,10 @@ public class PAMProfileXClass
 
     private final BaseClass pamClass;
 
+    /**
+     * @param context the XWiki context
+     * @throws XWikiException for any XWiki system issues
+     */
     public PAMProfileXClass(XWikiContext context) throws XWikiException
     {
         this.context = context;
@@ -152,7 +162,7 @@ public class PAMProfileXClass
 
     /**
      * Update PAM profile object with provided PAM user informations.
-     * 
+     *
      * @param userDocument the user profile page to update.
      * @param userName the userName to store in the PAM profile.
      * @param uid the uid to store in the PAM profile.
@@ -176,10 +186,10 @@ public class PAMProfileXClass
             needsUpdate = true;
         }
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("storing PAM object: objUserName={}, objUid={}, userName={}, uid={}, needsUpdate={}",
-			 objUserName, objUid, userName, uid, needsUpdate);
-	}
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("storing PAM object: objUserName={}, objUid={}, userName={}, uid={}, needsUpdate={}",
+                         objUserName, objUid, userName, uid, needsUpdate);
+        }
 
         if (needsUpdate) {
             this.pamClass.fromMap(map, pamObject);
@@ -192,7 +202,7 @@ public class PAMProfileXClass
      * Search the XWiki storage for a existing user profile with provided PAM user uid stored.
      * <p>
      * If more than one profile is found the first one in returned and an error is logged.
-     * 
+     *
      * @param userName the UNIX user name (not uid)
      * @return the user profile containing PAM uid.
      */
@@ -202,10 +212,12 @@ public class PAMProfileXClass
 
         List<XWikiDocument> documentList;
         try {
-            // Search for userName in database, make sure to compare userNames lower cased to make to to not take into account the
-            // case since PAM does not
+            // Search for userName in database, make sure to compare userNames
+            // lower cased to make to to not take into account the case since
+            // PAM does not
             String sql =
-                ", BaseObject as obj, StringProperty as prop where doc.fullName=obj.name and obj.className=? and obj.id=prop.id.id and prop.name=? and lower(prop.value)=?";
+                ", BaseObject as obj, StringProperty as prop where doc.fullName=obj.name and "
+                + "obj.className=? and obj.id=prop.id.id and prop.name=? and lower(prop.value)=?";
 
             documentList = this.context.getWiki().getStore().searchDocuments(sql, false, false, false, 0, 0,
                 Arrays.asList(PAM_XCLASS, PAM_XFIELD_USER_NAME, userName.toLowerCase()), this.context);
@@ -215,10 +227,10 @@ public class PAMProfileXClass
             documentList = Collections.emptyList();
         }
 
-	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("counted {} docs searching for id={}, {}={}",
-			 documentList.size(), PAM_XCLASS, PAM_XFIELD_USER_NAME, userName.toLowerCase());
-	}	
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("counted {} docs searching for id={}, {}={}",
+                         documentList.size(), PAM_XCLASS, PAM_XFIELD_USER_NAME, userName.toLowerCase());
+        }
 
         if (documentList.size() > 1) {
             LOGGER.error("There is more than one user profile for PAM userName [" + userName + "]");

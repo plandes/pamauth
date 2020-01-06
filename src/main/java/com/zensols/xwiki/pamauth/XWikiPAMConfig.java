@@ -1,29 +1,25 @@
 package com.zensols.xwiki.pamauth;
 
-import java.security.Provider;
-import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.stability.Unstable;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.Utils;
 
+/**
+ * Configuration helper utility class.
+ *
+ * @version $Id$
+ */
 public class XWikiPAMConfig
 {
     /**
@@ -47,6 +43,15 @@ public class XWikiPAMConfig
     public static final String USERMAPPING_SEP = DEFAULT_SEPARATOR;
 
     /**
+     * Character user to link XWiki field name and PAM field name in user mappings property.
+     */
+    public static final String USERMAPPING_XWIKI_PAM_LINK = "=";
+
+    private static final String PAM_REMOTE_USER_MAPPING_PROP = "pam_remoteUserMapping.";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(XWikiPAMConfig.class);
+
+    /**
      * Unique instance of {@link XWikiPAMConfig}.
      */
     private static XWikiPAMConfig instance;
@@ -57,12 +62,6 @@ public class XWikiPAMConfig
 
     private ConfigurationSource cfgConfigurationSource;
 
-    /**
-     * Character user to link XWiki field name and PAM field name in user mappings property.
-     */
-    public static final String USERMAPPING_XWIKI_PAM_LINK = "=";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(XWikiPAMConfig.class);
 
     /**
      * @param userId the complete user id given
@@ -100,7 +99,7 @@ public class XWikiPAMConfig
     }
 
     /**
-     * Try to find the configuration in the following order:
+     * Try to find the configuration.  Do so in the following order:
      * <ul>
      * <li>Local configuration stored in this {@link XWikiPAMConfig} instance (pam_*name*)</li>
      * <li>XWiki Preferences page (pam_*name*)</li>
@@ -342,7 +341,7 @@ public class XWikiPAMConfig
      */
     public List<String> getRemoteUserMapping(int groupId)
     {
-        return getPAMListParam("pam_remoteUserMapping." + groupId, ',', Collections.<String>emptyList());
+        return getPAMListParam(PAM_REMOTE_USER_MAPPING_PROP + groupId, ',', Collections.<String>emptyList());
     }
 
     /**
@@ -353,8 +352,9 @@ public class XWikiPAMConfig
      */
     public Map<String, String> getRemoteUserMapping(String propertyName, boolean forceLowerCaseKey)
     {
-        return getPAMMapParam("pam_remoteUserMapping." + propertyName, '|', Collections.<String, String>emptyMap(),
-            forceLowerCaseKey);
+        return getPAMMapParam(PAM_REMOTE_USER_MAPPING_PROP + propertyName,
+                              '|', Collections.<String, String>emptyMap(),
+                              forceLowerCaseKey);
     }
 
     /**
