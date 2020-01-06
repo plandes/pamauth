@@ -47,7 +47,7 @@ More [documentation](https://xwiki-contrib.github.io/authenticator-pam/):
 
 ## Building
 
-To build from source, do the folling:
+To build from source, do the following:
 
 - Install [Maven](https://maven.apache.org)
 - Install [GNU make](https://www.gnu.org/software/make/) (optional)
