@@ -80,6 +80,8 @@
         <xwiki.revapi.skip>true</xwiki.revapi.skip>
         <xwiki.extension.name>PAM Authenticator</xwiki.extension.name>
         <xwiki.extension.category>api</xwiki.extension.category>
+        <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
+        <xwiki.issueManagement.jira.id>PAMAUTH</xwiki.issueManagement.jira.id>
     </properties>
 
     <dependencies>
