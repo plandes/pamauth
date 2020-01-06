@@ -15,20 +15,13 @@
     <packaging>jar</packaging>
     <name>PAM Authentication</name>
     <description>Password Authentication Module (PAM) bridge</description>
-    <url>https://github.com/plandes/pamauth</url>
-
-    <licenses>
-        <license>
-            <name>Apache License version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <url>https://github.com/xwiki-contrib/authenticator-pam</url>
 
     <scm>
-        <url>https://github.com/plandes/pamauth</url>
-	<connection>scm:git:git://github.com/plandes/pamauth.git</connection>
-	<developerConnection>scm:git:git@github.com:plandes/pamauth.git</developerConnection>
+        <connection>scm:git:git://github.com/xwiki-contrib/authenticator-pam.git</connection>
+        <developerConnection>scm:git:git@github.com:xwiki-contrib/authenticator-pam.git</developerConnection>
+        <url>https://github.com/xwiki-contrib/authenticator-pam</url>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
@@ -37,17 +30,6 @@
             <url>http://github.com/plandes</url>
 	</developer>
     </developers>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <repositories>
         <repository>
