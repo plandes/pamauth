@@ -21,16 +21,8 @@ allows authentication to [XWiki] to LDAP via this software.
 
 ## Obtaining
 
-In your `pom.xml` file add
-the
-[dependency XML element](https://plandes.github.io/pamauth/dependency-info.html) below:
-```xml
-<dependency>
-    <groupId>com.zensols.xwiki</groupId>
-    <artifactId>pamauth</artifactId>
-    <version>0.0.1</version>
-</dependency>
-```
+The [extension] is available via the XWiki Extensions manager.
+
 
 ## Installation
 
@@ -91,3 +83,4 @@ GNU LESSER GENERAL PUBLIC LICENSE
 [userauth]: https://github.com/plandes/userauth
 [pwauth]: https://github.com/phokz/pwauth
 [userauth package]: https://github.com/plandes/userauth#installation
+[extension]: https://extensions.xwiki.org/xwiki/bin/preview/Extension/PAM%20Authenticator/WebHome
