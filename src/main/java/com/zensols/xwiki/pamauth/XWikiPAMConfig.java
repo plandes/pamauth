@@ -248,7 +248,7 @@ public class XWikiPAMConfig
     /**
      * @param name the name of the property in XWikiPreferences.
      * @param def the default value
-     * @param forceLowerCaseKey
+     * @param forceLowerCaseKey downcase all keys on the first read of the configuration
      * @return the configuration value as {@link Map}
      * @since 9.1.1
      */
@@ -261,7 +261,7 @@ public class XWikiPAMConfig
      * @param name the name of the property in XWikiPreferences.
      * @param separator the separator used to cut each element of the list
      * @param def the default value
-     * @param forceLowerCaseKey
+     * @param forceLowerCaseKey downcase all keys on the first read of the configuration
      * @return the configuration value as {@link Map}
      * @since 9.1.1
      */

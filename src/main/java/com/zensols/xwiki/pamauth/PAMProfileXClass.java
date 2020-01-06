@@ -193,7 +193,7 @@ public class PAMProfileXClass
      * <p>
      * If more than one profile is found the first one in returned and an error is logged.
      * 
-     * @param uid the PAM unique id.
+     * @param userName the UNIX user name (not uid)
      * @return the user profile containing PAM uid.
      */
     public XWikiDocument searchDocumentByUserName(String userName)

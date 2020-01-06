@@ -326,7 +326,7 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
     /**
      * Try PAM login for given context and return {@link Principal}.
      * 
-     * @param userName the id of the user provided in input
+     * @param userNameRaw the user name (not uid) of the UNIX user
      * @param validXWikiUserName the name of the XWiki user to log in.
      * @param password the password of the user to log in.
      * @param trusted true in case of trusted authentication (i.e. should the credentials be validated or not)
@@ -334,14 +334,12 @@ public class XWikiPAMAuthServiceImpl extends XWikiAuthServiceImpl {
      * @param local indicate if it's a local authentication. Supposed to return a local user {@link Principal} (without
      *            the wiki name).
      * @return the {@link Principal}.
-     * @throws XWikiException error when login.
-     * @throws UnsupportedEncodingException error when login.
-     * @throws PAMException error when login.
+     * @throws XWikiException for failed logins
      * @since 9.0
      */
     protected Principal pamAuthenticateInContext(String userNameRaw, String validXWikiUserName, String password,
 						 boolean trusted, XWikiContext context, boolean local)
-        throws XWikiException, UnsupportedEncodingException
+        throws XWikiException
     {
         Principal principal = null;
 	String userName = userNameRaw.trim();
